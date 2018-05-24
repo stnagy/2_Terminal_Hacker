@@ -10,14 +10,15 @@ public class Hacker : MonoBehaviour {
     int level;
     enum Screen { MainMenu, Password, Win };
     Screen currentScreen;
+    string targetPassword;
 
     // Use this for initialization
-	void Start () {
+	private void Start () {
         ShowMainMenu("Hello Sir!");
 	}
 
     // method for showing main menu of game
-    void ShowMainMenu(string greeting) {
+    private void ShowMainMenu(string greeting) {
         currentScreen = Screen.MainMenu;
         Terminal.ClearScreen();
 
@@ -35,7 +36,7 @@ public class Hacker : MonoBehaviour {
     }
 
     // message (special function) called when the user hits return
-    void OnUserInput (string input) 
+    private void OnUserInput (string input) 
     {
         
         if (input == "menu") // we can always go directly to main menu
@@ -50,11 +51,6 @@ public class Hacker : MonoBehaviour {
         {
             CheckPassword(input);
         }
-    }
-
-    private void CheckPassword(string input)
-    {
-        throw new NotImplementedException();
     }
 
     private void RunMainMenu(string input)
@@ -72,10 +68,48 @@ public class Hacker : MonoBehaviour {
     }
 
     // code to handle password loop of game
-    void StartGame() 
+    private void StartGame() 
     {
         currentScreen = Screen.Password;
+        GenerateTargetPassword();
         Terminal.WriteLine("You have chosen level: " + level);
         Terminal.WriteLine("Please enter your password:");
+    }
+
+    private void GenerateTargetPassword()
+    {
+        // create password dictionary
+        Dictionary<int, string[]> passwords = new Dictionary<int, string[]>();
+        passwords.Add(1, new string[] { "Dirt", "Bug", "See", "Eye", "Key" });
+        passwords.Add(2, new string[] { "Earth", "Clear", "Light", "Secret", "Stars" });
+        passwords.Add(3, new string[] { "Observation", "Telescope", "Conversation", "Nighttime", "Forensics" });
+
+        // select correct password list based on level
+        string[] currentPasswordList = passwords[level];
+
+        // get random password from list and set game state
+        System.Random randomIndex = new System.Random();
+        targetPassword = currentPasswordList[randomIndex.Next(currentPasswordList.Length)];
+
+    }
+
+    private void CheckPassword(string input)
+    {
+        if (input.ToLower() == targetPassword.ToLower())
+        {
+            RunWinScreen();
+        }
+        else
+        {
+            Terminal.WriteLine("Incorrect password. Please try again.");
+        }
+    }
+
+    private void RunWinScreen()
+    {
+        currentScreen = Screen.Win;
+        Terminal.WriteLine("");
+        Terminal.WriteLine("You have hacked into the system.");
+        Terminal.WriteLine("Please type 'menu' to play again.");
     }
 }
