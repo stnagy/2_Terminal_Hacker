@@ -5,7 +5,12 @@ using UnityEngine;
 
 public class Hacker : MonoBehaviour {
 
-    // game state
+    // Game Configuration Data
+    string[] level1passwords = { "Dirt", "Bug", "See", "Eye", "Key" };
+    string[] level2passwords = { "Earth", "Clear", "Light", "Secret", "Stars" };
+    string[] level3passwords = { "Observation", "Telescope", "Conversation", "Nighttime", "Forensics" };
+
+    // Game state
     // use member variables to hold state
     int level;
     enum Screen { MainMenu, Password, Win };
@@ -58,7 +63,7 @@ public class Hacker : MonoBehaviour {
         string[] validLevels = { "1", "2", "3" }; // these are the valid levels that can be selected
         if (Array.IndexOf(validLevels, input) > -1)
         {
-            level = Int32.Parse(input);
+            level = int.Parse(input);
             StartGame();
         }
         else
@@ -72,36 +77,59 @@ public class Hacker : MonoBehaviour {
     {
         currentScreen = Screen.Password;
         GenerateTargetPassword();
-        Terminal.WriteLine("You have chosen level: " + level);
+        Terminal.ClearScreen();
+        Terminal.WriteLine("Scrambled password: " + JumbleString(targetPassword));
         Terminal.WriteLine("Please enter your password:");
+    }
+
+    private string JumbleString(string targetPassword)
+    {
+        // initialize variables
+        string jumbledPassword = "";
+        char[] passwordCharacters = targetPassword.ToLower().ToCharArray();
+
+        // pluck random character and add to jumbled password
+        while(passwordCharacters.Length > 0) 
+        {
+            int randomIndex = UnityEngine.Random.Range(0, passwordCharacters.Length);
+            char thisChar = passwordCharacters[randomIndex];
+            jumbledPassword += thisChar;
+
+            // substitute last character in array for what we just plucked, and decrement array size by one
+            passwordCharacters[randomIndex] = passwordCharacters[passwordCharacters.Length - 1];
+            Array.Resize(ref passwordCharacters, passwordCharacters.Length - 1);
+        }
+
+        return jumbledPassword;
     }
 
     private void GenerateTargetPassword()
     {
         // create password dictionary
         Dictionary<int, string[]> passwords = new Dictionary<int, string[]>();
-        passwords.Add(1, new string[] { "Dirt", "Bug", "See", "Eye", "Key" });
-        passwords.Add(2, new string[] { "Earth", "Clear", "Light", "Secret", "Stars" });
-        passwords.Add(3, new string[] { "Observation", "Telescope", "Conversation", "Nighttime", "Forensics" });
+        passwords.Add(1, level1passwords);
+        passwords.Add(2, level2passwords);
+        passwords.Add(3, level3passwords);
+        if (level < 1 || level > 3 ) { Debug.LogError("Invalid level number"); } // raise error for invalid level number
 
         // select correct password list based on level
         string[] currentPasswordList = passwords[level];
 
         // get random password from list and set game state
-        System.Random randomIndex = new System.Random();
-        targetPassword = currentPasswordList[randomIndex.Next(currentPasswordList.Length)];
-
+        int randomIndex = UnityEngine.Random.Range(0, currentPasswordList.Length);
+        targetPassword = currentPasswordList[randomIndex];
     }
 
     private void CheckPassword(string input)
     {
-        if (input.ToLower() == targetPassword.ToLower())
+        if (input.ToLower() == targetPassword.ToLower()) // we don't care about uppercase or lowercase for this game
         {
             RunWinScreen();
         }
         else
         {
             Terminal.WriteLine("Incorrect password. Please try again.");
+            Terminal.WriteLine("Scrambled password: " + JumbleString(targetPassword));
         }
     }
 
