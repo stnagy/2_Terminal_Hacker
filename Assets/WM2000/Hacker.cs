@@ -16,14 +16,15 @@ public class Hacker : MonoBehaviour {
     enum Screen { MainMenu, Password, Win };
     Screen currentScreen;
     string targetPassword;
+    int incorrectGuesses = 0;
 
     // Use this for initialization
-	private void Start () {
+	void Start () {
         ShowMainMenu("Hello Sir!");
 	}
 
     // method for showing main menu of game
-    private void ShowMainMenu(string greeting) {
+    void ShowMainMenu(string greeting) {
         currentScreen = Screen.MainMenu;
         Terminal.ClearScreen();
 
@@ -41,7 +42,7 @@ public class Hacker : MonoBehaviour {
     }
 
     // message (special function) called when the user hits return
-    private void OnUserInput (string input) 
+    void OnUserInput (string input) 
     {
         
         if (input == "menu") // we can always go directly to main menu
@@ -58,7 +59,7 @@ public class Hacker : MonoBehaviour {
         }
     }
 
-    private void RunMainMenu(string input)
+    void RunMainMenu(string input)
     {
         string[] validLevels = { "1", "2", "3" }; // these are the valid levels that can be selected
         if (Array.IndexOf(validLevels, input) > -1)
@@ -73,16 +74,14 @@ public class Hacker : MonoBehaviour {
     }
 
     // code to handle password loop of game
-    private void StartGame() 
+    void StartGame() 
     {
         currentScreen = Screen.Password;
         GenerateTargetPassword();
-        Terminal.ClearScreen();
-        Terminal.WriteLine("Scrambled password: " + JumbleString(targetPassword));
-        Terminal.WriteLine("Please enter your password:");
+        PromptForPassword();
     }
 
-    private string JumbleString(string targetPassword)
+    string JumbleString(string targetPassword)
     {
         // initialize variables
         string jumbledPassword = "";
@@ -103,7 +102,7 @@ public class Hacker : MonoBehaviour {
         return jumbledPassword;
     }
 
-    private void GenerateTargetPassword()
+    void GenerateTargetPassword()
     {
         // create password dictionary
         Dictionary<int, string[]> passwords = new Dictionary<int, string[]>();
@@ -120,7 +119,7 @@ public class Hacker : MonoBehaviour {
         targetPassword = currentPasswordList[randomIndex];
     }
 
-    private void CheckPassword(string input)
+    void CheckPassword(string input)
     {
         if (input.ToLower() == targetPassword.ToLower()) // we don't care about uppercase or lowercase for this game
         {
@@ -128,16 +127,78 @@ public class Hacker : MonoBehaviour {
         }
         else
         {
-            Terminal.WriteLine("Incorrect password. Please try again.");
-            Terminal.WriteLine("Scrambled password: " + JumbleString(targetPassword));
+            incorrectGuesses++;
+            PromptForPassword();
         }
     }
 
-    private void RunWinScreen()
+    void PromptForPassword()
+    {
+        Terminal.ClearScreen();
+        if (incorrectGuesses % 3 == 0) { MenuReminder(); }
+        Terminal.WriteLine("Type password, hint: " + JumbleString(targetPassword));
+    }
+
+    void RunWinScreen()
     {
         currentScreen = Screen.Win;
+        Terminal.ClearScreen();
+        ShowLevelReward();
+
+    }
+
+    void ShowLevelReward()
+    {
+        switch (level)
+        {
+            case 1:
+                Terminal.WriteLine("You got a magnifying glass!");
+                Terminal.WriteLine(@"                 
+       .--.
+    .'      `.
+   |          \
+   \.         /;
+   `.`-.___.-'/'
+    / /`___.-'       
+   / / /
+   \/_/ 
+");
+                break;
+            case 2:
+                Terminal.WriteLine("Check out Saturn!");
+                Terminal.WriteLine(@"
+           .-.
+    ,o8888o, |
+  ,888888888/,
+  888888888/88
+  8888888/'888
+  `8888/'8888'        
+ ( `,'888P'
+ `-'");
+                break;
+            case 3:
+                Terminal.WriteLine("Check out that satellite!");
+                Terminal.WriteLine(@"
+       -O-
+       / \
+[ ][ ]-***-[ ][ ]
+       | |
+       | |
+       [ ]
+       < >             
+");
+                break;
+            default:
+                Debug.LogError("Invalid level reached.");
+                break;
+        }
+        MenuReminder();
+
+    }
+
+    void MenuReminder()
+    {
+        Terminal.WriteLine("(Type 'menu' to return home.)");
         Terminal.WriteLine("");
-        Terminal.WriteLine("You have hacked into the system.");
-        Terminal.WriteLine("Please type 'menu' to play again.");
     }
 }
